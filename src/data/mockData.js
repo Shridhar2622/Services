@@ -7,11 +7,11 @@ import fridgeImg from '../assets/images/fridge-repair.png';
 import transportImg from '../assets/images/transport.png';
 
 export const categories = [
-    { id: 'carpentry', name: 'Carpentry', icon: 'Hammer', color: 'bg-orange-100 text-orange-600' },
-    { id: 'electrical', name: 'Electrical', icon: 'Zap', color: 'bg-yellow-100 text-yellow-600' },
-    { id: 'homeappliance', name: 'Home Appliance', icon: 'Refrigerator', color: 'bg-blue-100 text-blue-600' },
-    { id: 'plumber', name: 'Plumber', icon: 'Droplets', color: 'bg-cyan-100 text-cyan-600' },
-    { id: 'transport', name: 'Transport', icon: 'Truck', color: 'bg-green-100 text-green-600' },
+    { id: 'carpentry', name: 'Carpentry', icon: 'Hammer', emoji: '🪚', color: 'bg-orange-100 text-orange-600' },
+    { id: 'electrical', name: 'Electrical', icon: 'Zap', emoji: '⚡', color: 'bg-yellow-100 text-yellow-600' },
+    { id: 'homeappliance', name: 'Appliance', icon: 'Refrigerator', emoji: '🏠', color: 'bg-blue-100 text-blue-600' },
+    { id: 'plumber', name: 'Plumber', icon: 'Droplets', emoji: '💧', color: 'bg-cyan-100 text-cyan-600' },
+    { id: 'transport', name: 'Transport', icon: 'Truck', emoji: '🚚', color: 'bg-green-100 text-green-600' },
 ];
 
 export const services = [
@@ -24,6 +24,11 @@ export const services = [
         price: 499,
         image: carpentryImg,
         description: 'Furniture repair, assembly, and custom woodwork.',
+        eta: '45 mins',
+        discount: '20% OFF',
+        isPromoted: true,
+        tags: ['Fast', 'Warranty'],
+        urgency: '⚡ Fastest available in your area'
     },
     {
         id: 2,
@@ -34,6 +39,11 @@ export const services = [
         price: 399,
         image: fridgeImg,
         description: 'Diagnosis and repair of all washing machine brands and models.',
+        eta: '30 mins',
+        discount: 'Flat ₹100',
+        isPromoted: false,
+        tags: ['Best Seller'],
+        urgency: '👨🔧 3 experts nearby'
     },
     {
         id: 3,
@@ -44,6 +54,11 @@ export const services = [
         price: 599,
         image: plumbingImg,
         description: 'Leak repair, pipe fitting, and bathroom general plumbing.',
+        eta: '60 mins',
+        discount: '',
+        isPromoted: true,
+        tags: ['Must Try', 'Quick'],
+        urgency: '🔥 Booked 12 times today'
     },
     {
         id: 4,
@@ -54,6 +69,11 @@ export const services = [
         price: 199,
         image: electricalImg,
         description: 'Fan repair, light installation, socket replacement, and more.',
+        eta: '25 mins',
+        discount: '15% OFF',
+        isPromoted: false,
+        tags: ['Budget'],
+        urgency: '⚡ Arrives in 25 mins'
     },
     {
         id: 5,
@@ -64,6 +84,11 @@ export const services = [
         price: 449,
         image: fridgeImg,
         description: 'Expert repair for single and double door refrigerators.',
+        eta: '90 mins',
+        discount: '',
+        isPromoted: false,
+        tags: ['Expert'],
+        urgency: '🛡️ 30-day warranty included'
     },
     {
         id: 6,
@@ -74,6 +99,11 @@ export const services = [
         price: 1999,
         image: transportImg,
         description: 'Safe and local goods transport and house shifting services.',
+        eta: '24 hrs',
+        discount: 'Free Box',
+        isPromoted: true,
+        tags: ['Safe'],
+        urgency: '🚚 High demand today'
     },
 ];
 
