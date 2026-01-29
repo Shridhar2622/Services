@@ -19,14 +19,7 @@ const ServiceStack = () => {
     const containerRef = useRef(null);
     const workerRef = useRef(null);
     const [activeCardId, setActiveCardId] = useState(categories[0].id);
-    const [workerState, setWorkerState] = useState({
-        pose: 'holding', // Default to holding so he looks ready
-        mood: 'happy',
-        x: 0,
-        y: 0,
-        opacity: 0, // Start hidden, reveal on first trigger
-        scale: 0.8
-    });
+
 
     useLayoutEffect(() => {
         const ctx = gsap.context(() => {
@@ -62,33 +55,32 @@ const ServiceStack = () => {
             });
 
             // Worker Exit Animation
-            // Trigger when the last card passes a certain point (user is done reading it)
-            if (cards.length > 0) {
-                const lastCard = cards[cards.length - 1];
+            // Trigger start descent specifically from the 4th card (index 3) as requested
+            if (cards.length > 3) {
                 ScrollTrigger.create({
-                    trigger: lastCard,
-                    start: "top 0%", // Start fading out almost as soon as the last card appears
-                    end: "bottom center",
-                    onEnter: () => {
-                        // Fade him out earlier so he's gone by the time the stack ends
-                        gsap.to(workerRef.current, {
-                            y: 100,
-                            opacity: 0,
-                            duration: 0.3, // Faster fade
-                            ease: "power2.in",
-                            overwrite: true
-                        });
-                    },
-                    onLeaveBack: () => {
-                        // Bring him back if we scroll back up
-                        gsap.to(workerRef.current, {
-                            y: 0,
-                            opacity: 1,
-                            duration: 0.5,
-                            ease: "back.out(1.2)",
-                            overwrite: true
-                        });
-                    }
+                    trigger: cards[3], // The 4th card
+                    start: "top 75%", // Start EARLIER (as card enters bottom of screen)
+                    end: "bottom top",
+                    scrub: 0.5, // Slight smoothing for physics feel
+                    animation: gsap.to(workerRef.current, {
+                        y: 1200, // Faster/Deeper drop
+                        scale: 0.8, // Fall "away" slightly
+                        opacity: 0,
+                        ease: "none"
+                    })
+                });
+            } else {
+                // Fallback if fewer cards
+                ScrollTrigger.create({
+                    trigger: containerRef.current,
+                    start: "bottom 85%",
+                    end: "bottom 50%",
+                    scrub: 1,
+                    animation: gsap.to(workerRef.current, {
+                        y: 150,
+                        opacity: 0,
+                        ease: "power1.in"
+                    })
                 });
             }
 
@@ -135,36 +127,62 @@ const ServiceStack = () => {
                 {categories.map((cat, index) => {
                     const isActive = activeCardId === cat.id;
                     const Icon = iconMap[cat.icon];
-                    // Dynamic background based on brand color or simplified palette
-                    const bgClass = cat.color.includes('orange') ? 'bg-orange-50 border-orange-200' :
-                        cat.color.includes('blue') ? 'bg-blue-50 border-blue-200' :
-                            cat.color.includes('green') ? 'bg-emerald-50 border-emerald-200' :
-                                cat.color.includes('purple') ? 'bg-violet-50 border-violet-200' :
-                                    'bg-white border-slate-200';
+
+                    // Parsing color for custom styling
+                    // cat.color usually looks like 'bg-orange-100 text-orange-600'
+                    // We'll extract the base color name (e.g., 'orange') for dynamic classes
+                    const colorName = cat.color.includes('orange') ? 'orange' :
+                        cat.color.includes('blue') ? 'blue' :
+                            cat.color.includes('cyan') ? 'cyan' :
+                                cat.color.includes('yellow') ? 'yellow' :
+                                    cat.color.includes('green') ? 'emerald' :
+                                        cat.color.includes('purple') ? 'violet' : 'slate';
 
                     return (
                         <div
                             key={cat.id}
-                            className={`service-card sticky top-60 mb-20 w-full rounded-[3rem] border-2 ${bgClass} shadow-xl transition-transform duration-500 z-40`}
+                            className={`service-card sticky top-60 mb-20 w-full rounded-[2.5rem] shadow-2xl transition-all duration-500 z-40 group overflow-hidden bg-white ring-1 ring-slate-200/50 hover:ring-4 hover:ring-${colorName}-100`}
                         >
-                            <div className="relative z-10 flex flex-col md:flex-row items-center p-8 md:p-12 gap-8 md:gap-12 min-h-[400px] overflow-hidden rounded-[3rem]">
-                                {/* Icon Side */}
-                                <div className="shrink-0 relative group">
-                                    <div className={`w-32 h-32 rounded-full bg-white shadow-md flex items-center justify-center relative z-10 group-hover:scale-110 transition-transform duration-300`}>
-                                        {Icon && <Icon className="w-14 h-14 text-slate-800" strokeWidth={1.5} />}
+                            <div className="flex flex-col md:flex-row h-full">
+                                {/* Left Content Section */}
+                                <div className="flex-1 p-8 md:p-12 flex flex-col justify-center relative overflow-hidden">
+                                    {/* Ambient Gradient Background */}
+                                    <div className={`absolute -top-20 -left-20 w-64 h-64 bg-${colorName}-50 rounded-full blur-3xl opacity-60 pointer-events-none`}></div>
+                                    <div className={`absolute bottom-0 right-0 w-64 h-64 bg-${colorName}-50 rounded-full blur-3xl opacity-30 pointer-events-none`}></div>
+
+                                    <div className="relative z-10">
+                                        {/* Icon Badge */}
+                                        <div className={`w-16 h-16 rounded-2xl bg-${colorName}-50 flex items-center justify-center mb-6 shadow-sm`}>
+                                            {Icon && <Icon className={`w-8 h-8 text-${colorName}-600`} strokeWidth={1.5} />}
+                                        </div>
+
+                                        <h3 className="text-3xl md:text-5xl font-bold text-slate-900 mb-4 tracking-tight leading-tight">
+                                            {cat.name}
+                                        </h3>
+                                        <p className="text-lg text-slate-500 leading-relaxed mb-8 max-w-md">
+                                            {cat.description}
+                                        </p>
+
+                                        <button className={`group/btn flex items-center gap-3 px-8 py-4 rounded-full bg-slate-900 text-white font-medium hover:bg-${colorName}-600 transition-all duration-300 w-fit drop-shadow-lg`}>
+                                            <span>Book Now</span>
+                                            <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover/btn:translate-x-1 transition-transform">
+                                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                            </div>
+                                        </button>
                                     </div>
-                                    <div className={`absolute inset-0 bg-current opacity-10 blur-xl rounded-full scale-125 ${cat.color.split(' ')[0]}`}></div>
                                 </div>
 
-                                {/* Content Side */}
-                                <div className="text-center md:text-left pt-10 md:pt-0">
-                                    <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">{cat.name}</h3>
-                                    <p className="text-lg text-slate-600 leading-relaxed mb-8">
-                                        {cat.description}
-                                    </p>
-                                    <button className="px-8 py-3 rounded-full bg-slate-900 text-white font-medium hover:bg-slate-800 transition-colors">
-                                        Book {cat.name}
-                                    </button>
+                                {/* Right Image Section */}
+                                <div className="relative h-64 md:h-auto md:w-5/12 overflow-hidden">
+                                    <div className="absolute inset-0 bg-slate-200">
+                                        <img
+                                            src={cat.image}
+                                            alt={cat.name}
+                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                        />
+                                    </div>
+                                    {/* Overlay Gradient for Text readability if needed, or just style */}
+                                    <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent md:bg-linear-to-l md:from-transparent md:to-black/5"></div>
                                 </div>
                             </div>
                         </div>

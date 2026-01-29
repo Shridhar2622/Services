@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { Search, MapPin, ArrowRight, ShieldCheck, Clock, Award, Hammer, Zap, Refrigerator, Droplets, Truck, Calendar, Map, CheckCircle } from 'lucide-react';
+import { Search, ArrowRight, ShieldCheck, Clock, Award, Hammer, Zap, Refrigerator, Droplets, Truck, Calendar, Map, CheckCircle } from 'lucide-react';
 import { categories, services } from '../../data/mockData';
 import ServiceCard from '../../components/common/ServiceCard';
 import ServiceStack from '../../components/home/ServiceStack';
@@ -87,49 +87,50 @@ const HomePage = () => {
 
     // Scroll Animation (Scene) for Frame Switching
     // We scroll scrub the body to change frames
+    /* 
     const scrollTl = gsap.timeline({
       scrollTrigger: {
         trigger: "body", // Scroll whole page
         start: "top top",
-        end: "700px top", // Increased distance for slower, smoother feel
+        end: "1000px top", // Increased distance for slower, smoother feel
         scrub: 1 // Smoother catching up
       }
     });
 
-    /* 
-       Logic:
-       0% - 25%: Frame 0 (Initial)
-       25% - 50%: Frame 1 (Look up)
-       50% - 75%: Frame 2 (Ready)
-       75% - 100%: Frame 3 (Fly) + Movement
-    */
+    // Logic:
+    // 0% - 20%: Frame 0 (Initial)
+    // 20% - 40%: Frame 1 (Look up)
+    // 40% - 60%: Frame 2 (Ready)
+    // 60% - 100%: Frame 3 (Fly) + Movement
 
-    // Add continuous right drift (smooth movement effect)
+    // Slight drift right as he prepares (Frames 0-2)
     scrollTl.to(".superman-container", {
-      x: 400, // Drifts right significantly as he prepares
+      x: 100,
       ease: "power1.inOut",
-      duration: 0.4
+      duration: 0.6
     }, 0);
 
-    // FRAME 1
-    scrollTl.to(".frame-0", { opacity: 0, duration: 0.05 }, 0.1)
-      .to(".frame-1", { opacity: 1, duration: 0.05 }, 0.1);
+    // FRAME 1 - Look Check
+    scrollTl.to(".frame-0", { opacity: 0, duration: 0.05 }, 0.2)
+      .to(".frame-1", { opacity: 1, duration: 0.05 }, 0.2);
 
-    // FRAME 2
-    scrollTl.to(".frame-1", { opacity: 0, duration: 0.05 }, 0.2)
-      .to(".frame-2", { opacity: 1, duration: 0.05 }, 0.2);
+    // FRAME 2 - Crouching / Ready
+    scrollTl.to(".frame-1", { opacity: 0, duration: 0.05 }, 0.4)
+      .to(".frame-2", { opacity: 1, duration: 0.05 }, 0.4);
 
-    // FRAME 3 (Takeoff) + Movement
-    scrollTl.to(".frame-2", { opacity: 0, duration: 0.05 }, 0.3)
-      .to(".frame-3", { opacity: 1, duration: 0.05 }, 0.3)
-      // Fly away logic - continues the motion
+    // FRAME 3 (Takeoff) + Launch
+    scrollTl.to(".frame-2", { opacity: 0, duration: 0.05 }, 0.6)
+      .to(".frame-3", { opacity: 1, duration: 0.05 }, 0.6)
+      // Fly away logic - Accelerate up and right
       .to(".superman-container", {
-        x: 800, // Continue right
-        y: -1000, // Fly Up
-        scale: 0.5,
-        ease: "power1.in",
-        duration: 0.5
-      }, 0.35);
+        x: 600, // Move right
+        y: -1200, // Fly way up
+        scale: 0.8, // Slight perspective shrink
+        rotation: 10, // Tilt into flight
+        ease: "power4.in", // Strong acceleration curve
+        duration: 0.6
+      }, 0.6);
+    */
 
   }, { scope: containerRef });
 
@@ -222,15 +223,22 @@ const HomePage = () => {
               <div className="absolute bottom-0 left-1/2 w-64 h-64 bg-slate-600 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
             </div>
 
+            {/* Superman Worker - Moved outside the text container for full-width positioning */}
+            <div className="superman-container absolute left-[2%] md:left-[5%] lg:left-[10%] top-32 md:top-48 w-80 lg:w-96 h-[28rem] lg:h-[32rem] z-20 hidden md:block pointer-events-none">
+              <SupermanWorker />
+            </div>
+
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 
-
-              <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight leading-tight">
-                Home Services, <br className="hidden md:block" />
-                <span className="text-white relative inline-block">
+              <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tighter leading-[1.1]">
+                <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent drop-shadow-sm">
+                  Home Services,
+                </span> <br className="hidden md:block" />
+                <span className="relative inline-block mt-2">
+                  {/* "On-demand!" with a vibrant cyan/blue gradient text effect */}
                   <SplitText
                     text="On-demand!"
-                    className="text-4xl md:text-6xl font-extrabold text-center"
+                    className="text-5xl md:text-7xl font-black text-cyan-400 inline-block pb-2 drop-shadow-lg"
                     delay={50}
                     duration={1.25}
                     ease="power3.out"
@@ -242,15 +250,9 @@ const HomePage = () => {
                     textAlign="center"
                     showCallback
                   />
-                  {/* Floating Worker Image Removed from here */}
                 </span>
               </h1>
-
-
-              <div className="superman-container absolute left-1/4 -ml-20 top-6 md:top-14 w-68 lg:w-80 h-96 z-20 hidden md:block pointer-events-none">
-                <SupermanWorker />
-              </div>
-              <p className="text-lg md:text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed font-light">
+              <p className="text-lg md:text-2xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
                 <TextType
                   text="Expert professionals for all your home repair needs."
                   typingSpeed={10}
@@ -263,7 +265,7 @@ const HomePage = () => {
                 />
                 <br className="hidden md:block" />
                 {typingStep >= 1 && (
-                  <span className="font-medium text-slate-200">
+                  <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 drop-shadow-sm">
                     <TextType
                       text="Quick, reliable, and affordable"
                       typingSpeed={10}
@@ -409,8 +411,8 @@ const HomePage = () => {
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-slate-800/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
             </div>
           </section>
-        </div>
-      </div>
+        </div >
+      </div >
     </>
   );
 };
