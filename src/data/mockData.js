@@ -1,4 +1,4 @@
-import result from 'postcss/lib/result';
+
 
 // Using Unsplash images for reliability and better aesthetics
 // High reliability images selected for stability
