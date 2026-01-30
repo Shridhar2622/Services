@@ -1,204 +1,313 @@
-import React, { useState } from 'react';
-import { Search, Mic, Tag, Star, Clock, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, MapPin, ArrowRight, Star, Clock, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { categories, services } from '../../data/mockData';
 import MobileHeader from '../../components/mobile/MobileHeader';
 import MobileBottomNav from '../../components/mobile/MobileBottomNav';
 import MobileServiceDetail from '../../pages/Services/MobileServiceDetail';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+
+const HERO_SLIDES = [
+  {
+    id: 1,
+    serviceId: 8, // Expert AC Repair
+    image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1200", // AC Repair
+    title: "Expert AC Repair",
+    subtitle: "Cooling solutions in minutes"
+  },
+  {
+    id: 2,
+    serviceId: 1, // Custom Carpentry
+    image: "https://images.unsplash.com/photo-1603533867307-b354255e3c32?auto=format&fit=crop&q=80&w=1200", // Custom/Expert Carpentry
+    title: "Custom Carpentry",
+    subtitle: "Furniture repair & assembly"
+  },
+  {
+    id: 3,
+    serviceId: 4, // Electrical
+    image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=1200", // Electrical
+    title: "Electrical Safety",
+    subtitle: "Certified electricians"
+  },
+  {
+    id: 4,
+    serviceId: 3, // Plumbing
+    image: "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?auto=format&fit=crop&q=80&w=1200", // Plumbing
+    title: "Plumbing Pros",
+    subtitle: "Leak repairs & installation"
+  },
+  {
+    id: 5,
+    serviceId: 5, // Fridge
+    image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=1200", // Appliances
+    title: "Appliance Fixes",
+    subtitle: "Fridge, Washer & more"
+  },
+  {
+    id: 6,
+    serviceId: 6, // Transport
+    image: "https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?auto=format&fit=crop&q=80&w=1200", // Transport
+    title: "Safe Transport",
+    subtitle: "House shifting made easy"
+  },
+  {
+    id: 7,
+    serviceId: 7, // Deep Cleaning
+    image: "https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&q=80&w=1200", // Deep Cleaning
+    title: "Deep Cleaning",
+    subtitle: "Spotless home guaranteed"
+  }
+];
 
 const MobileHomePage = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedServiceId, setSelectedServiceId] = useState(null);
+  const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState('All');
+  const navigate = useNavigate();
 
-  // Group categories for grid (limit to 8 for initial view)
-  const displayCategories = categories.slice(0, 8);
-
-  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setInterval(() => {
-        setCurrentBannerIndex((prev) => (prev + 1) % 3);
-    }, 4000);
+      setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+    }, 5000);
     return () => clearInterval(timer);
   }, []);
 
+  // Auto-cycle categories scale effect (only if no filter selected)
+  useEffect(() => {
+    if (activeCategoryFilter !== 'All') return;
+    const interval = setInterval(() => {
+      setActiveCategoryIndex((prev) => (prev + 1) % categories.slice(0, 8).length);
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [activeCategoryFilter]);
+
+  const [activeCardId, setActiveCardId] = useState(null);
+
+  // Intersection Observer for Zoom & Rotating Border Effect
+  const observerRef = useRef(null);
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setActiveCardId(Number(entry.target.dataset.id));
+          entry.target.classList.add('scale-[1.02]', 'shadow-2xl');
+          entry.target.classList.remove('scale-100', 'shadow-md');
+        } else {
+          entry.target.classList.remove('scale-[1.02]', 'shadow-2xl');
+          entry.target.classList.add('scale-100', 'shadow-md');
+        }
+      });
+    }, { threshold: 0.6, rootMargin: "-10% 0px -10% 0px" });
+
+    const cards = document.querySelectorAll('.zoom-card');
+    cards.forEach(card => observerRef.current.observe(card));
+
+    return () => observerRef.current.disconnect();
+  }, [services]); // activeCategoryFilter removed from dependencies
+
+  const handleHeroClick = (slide) => {
+    if (slide.serviceId) {
+      setSelectedServiceId(slide.serviceId);
+    }
+  };
+
+  const handleCategoryClick = (categoryId) => {
+    // Redirect to Services page with strict filtering
+    navigate('/services', { state: { category: categoryId } });
+  };
+
+  // Always show top services on Home Page (no local filtering)
+  const displayedServices = services.slice(0, 5);
+
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 font-sans">
-      {/* Service Detail Modal */}
-      {selectedServiceId && (
-        <MobileServiceDetail 
-            serviceId={selectedServiceId} 
-            onClose={() => setSelectedServiceId(null)} 
-        />
-      )}
+    <div className="min-h-screen bg-[#FFFBF5] dark:bg-slate-950 pb-24 font-sans">
+      <AnimatePresence>
+        {selectedServiceId && (
+          <MobileServiceDetail
+            serviceId={selectedServiceId}
+            onClose={() => setSelectedServiceId(null)}
+          />
+        )}
+      </AnimatePresence>
 
       <MobileHeader />
 
-      {/* Search Bar Section */}
-      <div className="px-4 pt-4 pb-2 bg-white sticky top-[60px] z-40">
-        <div className="relative group">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
-          </div>
-          <input
-            type="text"
-            className="block w-full pl-10 pr-10 py-3 border-none rounded-xl bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:bg-white transition-all shadow-sm"
-            placeholder="Search for 'AC Repair'..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center border-l border-gray-200 ml-2 pl-2">
-             <Mic className="h-5 w-5 text-rose-600" />
-          </div>
-        </div>
-      </div>
+      <main className="relative px-2 pt-2">
+        {/* Immersive Hero Section */}
+        <section
+          className="relative h-[65vh] w-full overflow-hidden rounded-[2.5rem] shadow-2xl z-0 cursor-pointer active:scale-[0.98] transition-all duration-300"
+          onClick={() => handleHeroClick(HERO_SLIDES[currentSlide])}
+        >
+          <AnimatePresence mode="popLayout">
+            <motion.img
+              key={currentSlide}
+              src={HERO_SLIDES[currentSlide].image}
+              alt="Hero"
+              className="absolute inset-0 w-full h-full object-cover"
+              initial={{ scale: 1.1, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.5 }}
+            />
+          </AnimatePresence>
 
-      <div className="p-4 space-y-6">
-        
-        {/* Promotional Banner */}
-        {/* Promotional Banner Carousel */}
-        <div className="relative overflow-hidden rounded-2xl shadow-lg shadow-rose-200">
-          <div 
-             className="flex transition-transform duration-500 ease-in-out" 
-             style={{ transform: `translateX(-${currentBannerIndex * 100}%)` }}
-          >
-             {/* Banner 1 */}
-             <div className="w-full flex-shrink-0 relative bg-gradient-to-r from-rose-900 to-rose-700 text-white p-5 h-44 flex flex-col justify-center">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
-                <div className="relative z-10 block">
-                    <div className="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded w-fit mb-2 border border-white/30">
-                    LIMITED OFFER
-                    </div>
-                    <h3 className="text-xl font-bold mb-1">Get 50% OFF</h3>
-                    <p className="text-rose-100 text-sm mb-4">On your first AC Service booking</p>
-                    <button className="bg-white text-rose-900 px-4 py-2 rounded-lg text-xs font-bold shadow-md hover:bg-gray-50 transition-colors">
-                    Book Now
-                    </button>
-                </div>
-                <div className="absolute bottom-0 right-0 p-4 opacity-10">
-                    <Tag size={60} />
-                </div>
-             </div>
+          {/* Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent" />
 
-             {/* Banner 2 */}
-             <div className="w-full flex-shrink-0 relative bg-gradient-to-r from-purple-900 to-indigo-800 text-white p-5 h-44 flex flex-col justify-center">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
-                <div className="relative z-10 block">
-                    <div className="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded w-fit mb-2 border border-white/30">
-                    NEW ARRIVAL
-                    </div>
-                    <h3 className="text-xl font-bold mb-1">Home Deep Cleaning</h3>
-                    <p className="text-indigo-100 text-sm mb-4">Starting at just ₹999</p>
-                    <button className="bg-white text-indigo-900 px-4 py-2 rounded-lg text-xs font-bold shadow-md hover:bg-gray-50 transition-colors">
-                    Explore
-                    </button>
-                </div>
-                 <div className="absolute bottom-0 right-0 p-4 opacity-10">
-                    <Star size={60} />
-                </div>
-             </div>
+          {/* Hero Content */}
+          <div className="absolute bottom-0 left-0 w-full p-6 pb-12 flex flex-col gap-2 z-10">
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <span className="inline-block px-3 py-1 bg-rose-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-full mb-3 shadow-lg shadow-rose-500/30">
+                Premium Services
+              </span>
+              <h1 className="text-4xl font-black text-white leading-none mb-2 tracking-tight">
+                {HERO_SLIDES[currentSlide].title}
+              </h1>
+              <p className="text-slate-200 text-lg font-medium opacity-90">
+                {HERO_SLIDES[currentSlide].subtitle}
+              </p>
+            </motion.div>
 
-             {/* Banner 3 */}
-             <div className="w-full flex-shrink-0 relative bg-gradient-to-r from-orange-600 to-red-600 text-white p-5 h-44 flex flex-col justify-center">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
-                <div className="relative z-10 block">
-                    <div className="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded w-fit mb-2 border border-white/30">
-                    EXPRESS SERVICE
-                    </div>
-                    <h3 className="text-xl font-bold mb-1">Plumbing Emergency?</h3>
-                    <p className="text-orange-100 text-sm mb-4">Expert plumbers at your door in 30 mins</p>
-                    <button className="bg-white text-orange-900 px-4 py-2 rounded-lg text-xs font-bold shadow-md hover:bg-gray-50 transition-colors">
-                    Call Now
-                    </button>
-                </div>
-                 <div className="absolute bottom-0 right-0 p-4 opacity-10">
-                    <Clock size={60} />
-                </div>
-             </div>
+            {/* Glassmorphic Search Bar */}
+            <motion.div
+              className="mt-6 relative"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent hero click
+                navigate('/search');
+              }}
+            >
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                type="text"
+                readOnly
+                className="block w-full pl-11 pr-4 py-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all font-medium text-sm shadow-xl cursor-text"
+                placeholder="What can we help you with?"
+              />
+            </motion.div>
           </div>
-
-          {/* Indicators */}
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
-            {[0, 1, 2].map((i) => (
-                <div 
-                    key={i} 
-                    className={`h-1.5 rounded-full transition-all duration-300 ${currentBannerIndex === i ? 'w-4 bg-white' : 'w-1.5 bg-white/50'}`}
-                />
-            ))}
-          </div>
-        </div>
+        </section>
 
         {/* Categories Grid */}
-        <div>
-          <h2 className="text-lg font-bold text-gray-900 mb-4 px-1">All Services</h2>
-          <div className="grid grid-cols-4 gap-x-2 gap-y-6">
-            {displayCategories.map((cat) => (
-              <Link to="/services" key={cat.id} className="flex flex-col items-center gap-2 group cursor-pointer">
-                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 p-1 hover:border-rose-200 transition-colors overflow-hidden">
-                   <img 
-                      src={cat.image} 
-                      alt={cat.name} 
-                      className="w-full h-full object-cover rounded-xl"
-                   />
-                </div>
-                <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight truncate w-full px-1 group-hover:text-rose-600 transition-colors">
-                  {cat.name}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
+        <section className="px-5 -mt-8 relative z-10">
+          <motion.div
+            className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-xl border border-slate-100 dark:border-slate-800"
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.8, type: "spring" }}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-slate-900 dark:text-white">
+                Categories
+              </h3>
+              <span className="text-xs font-semibold text-rose-500 flex items-center cursor-pointer" onClick={() => navigate('/services')}>View All <ArrowRight className="w-3 h-3 ml-1" /></span>
+            </div>
+            <div className="grid grid-cols-4 gap-y-6 gap-x-2">
+              {categories.slice(0, 8).map((cat, idx) => {
+                // const isActive = activeCategoryFilter === cat.id; // Removed
+                const isAutoActive = idx === activeCategoryIndex;
 
-        {/* Featured / Most Booked */}
-        <div>
-          <div className="flex justify-between items-center mb-4 px-1">
-             <h2 className="text-lg font-bold text-gray-900">Most Booked</h2>
-             <Link to="/services" className="text-rose-600 text-xs font-bold flex items-center gap-1">
-               See All <ArrowRight className="w-3 h-3" />
-             </Link>
-          </div>
-          
-          <div className="flex overflow-x-auto gap-4 pb-4 -mx-4 px-4 snap-x hide-scrollbar">
-            {services.slice(0, 4).map((service) => (
-              <div 
-                key={service.id} 
+                return (
+                  <motion.div
+                    key={cat.id}
+                    className="flex flex-col items-center gap-2 cursor-pointer"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.9 + (idx * 0.05) }}
+                    onClick={() => handleCategoryClick(cat.id)}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <div className={`w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-all duration-700
+                      ${isAutoActive ? 'scale-110 border-rose-600 ring-2 ring-rose-200 dark:ring-rose-900 shadow-lg' : ''}`}>
+                      <img src={cat.image} className="w-full h-full object-cover opacity-90" alt={cat.name} />
+                    </div>
+                    <span className={`text-[10px] font-bold text-center leading-3 transition-colors duration-500 ${isAutoActive ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-400'}`}>{cat.name}</span>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+        </section>
+
+        {/* Popular Services - Restored Large Cards & Zoom Effect */}
+        <section className="px-5 mt-8 pb-4">
+          <h2 className="text-xl font-extrabold text-slate-900 dark:text-white mb-5 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-amber-400 fill-current" />
+            Top Rated Services
+          </h2>
+
+          <div className="flex flex-col gap-8 min-h-[300px]">
+            {displayedServices.map((service, idx) => (
+              <div
+                key={service.id}
+                data-id={service.id}
                 onClick={() => setSelectedServiceId(service.id)}
-                className="min-w-[280px] bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm snap-center cursor-pointer active:scale-95 transition-transform"
+                className={`zoom-card relative rounded-[2rem] shadow-md dark:shadow-black/40 ring-1 ring-transparent dark:ring-white/5 transition-all duration-300 transform scale-100 rotating-border mb-8 ${activeCardId === service.id ? 'active' : ''} cursor-pointer active:scale-[0.98]`}
               >
-                <div className="h-32 bg-gray-200 relative">
-                  <div className="absolute inset-0 bg-slate-100 flex items-center justify-center text-slate-400">
-                    <img 
+                {/* Inner Content Wrapper */}
+                <div className="rounded-[2rem] overflow-hidden w-full h-full relative z-10 bg-white dark:bg-slate-900">
+                  {/* Image Section */}
+                  <div className="h-56 relative overflow-hidden">
+                    <img
                       src={service.image}
                       alt={service.title}
-                      className="w-full h-full object-cover"
+                      className={`w-full h-full object-cover transition-transform duration-1000 ease-out ${activeCardId === service.id ? 'scale-110' : 'scale-100'}`}
                     />
+                    <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-black/50 to-transparent"></div>
+                    <div className="absolute top-5 left-5">
+                      <span className="bg-white/90 dark:bg-black/80 backdrop-blur text-black dark:text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wide shadow-sm">
+                        Best Seller
+                      </span>
+                    </div>
+                    <div className="absolute top-5 right-5 w-8 h-8 bg-white/20 backdrop-blur rounded-full flex items-center justify-center text-white">
+                      <Star className="w-4 h-4 text-amber-400 fill-current" />
+                    </div>
                   </div>
-                  <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md flex items-center gap-1 text-[10px] font-bold shadow-sm">
-                    <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                    {service.rating || "4.8"}
+
+                  {/* Text Content */}
+                  <div className="p-5">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-xl font-extrabold text-gray-900 dark:text-white leading-tight">{service.title}</h3>
+                      <div className="bg-green-700 text-white text-xs font-bold px-2 py-0.5 rounded-lg flex items-center gap-0.5 shadow-sm">
+                        {service.rating} <Star className="w-2.5 h-2.5 fill-current" />
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-1.5 text-[11px] font-bold text-gray-500 dark:text-slate-400 mb-4 uppercase tracking-wide">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>45 Mins</span>
+                      <span className="mx-1">•</span>
+                      <span>Home Services</span>
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-dashed border-gray-100 dark:border-slate-800 pt-4">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-gray-400 dark:text-slate-500 font-bold uppercase line-through">₹{service.price + 300}</span>
+                        <span className="text-lg font-black text-gray-900 dark:text-white">₹{service.price}</span>
+                      </div>
+                      <button className="bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide hover:bg-rose-600 hover:text-white transition-colors">
+                        Book Now
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div className="p-3">
-                  <h3 className="font-bold text-gray-900 text-sm mb-1">{service.title}</h3>
-                  <div className="flex items-center gap-2 text-gray-500 text-xs mb-3">
-                    <Clock className="w-3 h-3" />
-                    <span>45 mins</span>
-                    <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                    <span>Starts at ₹{service.price}</span>
-                  </div>
-                  <button className="w-full py-2 rounded-lg border border-rose-100 text-rose-600 font-bold text-xs hover:bg-rose-50 transition-colors">
-                    Add
-                  </button>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-
-      </div>
+        </section>
+      </main>
 
       <MobileBottomNav />
-    </div>
+    </div >
   );
 };
 
