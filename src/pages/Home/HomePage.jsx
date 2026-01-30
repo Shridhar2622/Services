@@ -2,13 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { Search, MapPin, ArrowRight, ShieldCheck, Clock, Award, Hammer, Zap, Refrigerator, Droplets, Truck, Calendar, Map, CheckCircle } from 'lucide-react';
+import { Search, ArrowRight, ShieldCheck, Clock, Award, Hammer, Zap, Refrigerator, Droplets, Truck, Calendar, Map, CheckCircle } from 'lucide-react';
 import { categories, services } from '../../data/mockData';
 import ServiceCard from '../../components/common/ServiceCard';
+import ServiceStack from '../../components/home/ServiceStack';
 import Button from '../../components/common/Button';
-import ParticlesBackground from '../../components/common/ParticlesBackground';
+import Particles from '../../react-bit/Particle';
+
 import promoImg from '../../assets/images/fridge-repair.png';
 import MobileHomePage from './MobileHomePage';
+import SplitText from '../../react-bit/SplitText';
+import TextType from '../../react-bit/TextType';
+import SupermanWorker from '../../components/home/SupermanWorker';
+
 
 const iconMap = {
   Hammer,
@@ -25,8 +31,11 @@ const placeholders = [
   "Plumber in 10 Mins"
 ];
 
+const particleColors = ['#ffffff', '#aaacb9'];
+
 const HomePage = () => {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [typingStep, setTypingStep] = useState(0);
   const [fadeKey, setFadeKey] = useState(0);
   const overlayRef = useRef(null);
   const containerRef = useRef(null);
@@ -41,12 +50,113 @@ const HomePage = () => {
     });
   }, { scope: containerRef });
 
+  useGSAP(() => {
+    if (typingStep === 3) {
+      gsap.fromTo(".book-btn",
+        { x: -50, autoAlpha: 0 },
+        { x: 0, autoAlpha: 1, duration: 0.8, ease: "power3.out" }
+      );
+      gsap.fromTo(".explore-btn",
+        { x: 50, autoAlpha: 0 },
+        { x: 0, autoAlpha: 1, duration: 0.8, ease: "power3.out" }
+      );
+      gsap.fromTo(".trust-item",
+        { y: 20, autoAlpha: 0 },
+        { y: 0, autoAlpha: 1, duration: 0.6, stagger: 0.1, delay: 0.4, ease: "back.out(1.7)" }
+      );
+    }
+  }, { scope: containerRef, dependencies: [typingStep] });
+
+  useGSAP(() => {
+    // Superman Animation Sequence
+    // Initial Entrance (runs on load)
+    gsap.fromTo(".superman-container",
+      { y: "100vh" },
+      { y: 0, duration: 1.5, ease: "power3.out" }
+    );
+
+    // Initial Idle Float
+    gsap.to(".superman-container", {
+      y: -20,
+      duration: 2,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut",
+      delay: 1.5 // Start after entrance
+    });
+
+    // Scroll Animation (Scene) for Frame Switching
+    // We scroll scrub the body to change frames
+    /* 
+    const scrollTl = gsap.timeline({
+      scrollTrigger: {
+        trigger: "body", // Scroll whole page
+        start: "top top",
+        end: "1000px top", // Increased distance for slower, smoother feel
+        scrub: 1 // Smoother catching up
+      }
+    });
+
+    // Logic:
+    // 0% - 20%: Frame 0 (Initial)
+    // 20% - 40%: Frame 1 (Look up)
+    // 40% - 60%: Frame 2 (Ready)
+    // 60% - 100%: Frame 3 (Fly) + Movement
+
+    // Slight drift right as he prepares (Frames 0-2)
+    scrollTl.to(".superman-container", {
+      x: 100,
+      ease: "power1.inOut",
+      duration: 0.6
+    }, 0);
+
+    // FRAME 1 - Look Check
+    scrollTl.to(".frame-0", { opacity: 0, duration: 0.05 }, 0.2)
+      .to(".frame-1", { opacity: 1, duration: 0.05 }, 0.2);
+
+    // FRAME 2 - Crouching / Ready
+    scrollTl.to(".frame-1", { opacity: 0, duration: 0.05 }, 0.4)
+      .to(".frame-2", { opacity: 1, duration: 0.05 }, 0.4);
+
+    // FRAME 3 (Takeoff) + Launch
+    scrollTl.to(".frame-2", { opacity: 0, duration: 0.05 }, 0.6)
+      .to(".frame-3", { opacity: 1, duration: 0.05 }, 0.6)
+      // Fly away logic - Accelerate up and right
+      .to(".superman-container", {
+        x: 600, // Move right
+        y: -1200, // Fly way up
+        scale: 0.8, // Slight perspective shrink
+        rotation: 10, // Tilt into flight
+        ease: "power4.in", // Strong acceleration curve
+        duration: 0.6
+      }, 0.6);
+    */
+
+  }, { scope: containerRef });
+
+
+
   useEffect(() => {
     const interval = setInterval(() => {
       setPlaceholderIndex((prev) => (prev + 1) % placeholders.length);
       setFadeKey((prev) => prev + 1);
     }, 2500);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    // Force scroll to top on mount and prevent browser restoration
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+
+    // Optional: restoration cleanup if navigating away (though manual is often desired for single-page apps on refresh)
+    return () => {
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'auto';
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -87,7 +197,19 @@ const HomePage = () => {
           style={{ opacity: 1 }}
         >
           <div className="absolute inset-0 bg-[#020617]" />
-          <ParticlesBackground />
+          <Particles
+            particleCount={300}
+            particleSpread={10}
+            speed={1}
+            particleColors={particleColors}
+            moveParticlesOnHover={true}
+            particleHoverFactor={2}
+            alphaParticles={true}
+            particleBaseSize={200}
+            sizeRandomness={1}
+            cameraDistance={20}
+            className="absolute inset-0"
+          />
         </div>
 
         {/* Main Content Wrapper - z-10 puts it above the fixed background */}
@@ -101,21 +223,76 @@ const HomePage = () => {
               <div className="absolute bottom-0 left-1/2 w-64 h-64 bg-slate-600 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
             </div>
 
+            {/* Superman Worker - Moved outside the text container for full-width positioning */}
+            <div className="superman-container absolute left-[2%] md:left-[5%] lg:left-[10%] top-32 md:top-48 w-80 lg:w-96 h-[28rem] lg:h-[32rem] z-20 hidden md:block pointer-events-none">
+              <SupermanWorker />
+            </div>
+
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-              <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight leading-tight">
-                Home Services, <br className="hidden md:block" />
-                <span className="text-white">
-                  On Demand.
+
+              <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tighter leading-[1.1]">
+                <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent drop-shadow-sm">
+                  Home Services,
+                </span> <br className="hidden md:block" />
+                <span className="relative inline-block mt-2">
+                  {/* "On-demand!" with a vibrant cyan/blue gradient text effect */}
+                  <SplitText
+                    text="On-demand!"
+                    className="text-5xl md:text-7xl font-black text-cyan-400 inline-block pb-2 drop-shadow-lg"
+                    delay={50}
+                    duration={1.25}
+                    ease="power3.out"
+                    splitType="chars"
+                    from={{ opacity: 0, y: 40 }}
+                    to={{ opacity: 1, y: 0 }}
+                    threshold={0.1}
+                    rootMargin="-100px"
+                    textAlign="center"
+                    showCallback
+                  />
                 </span>
               </h1>
-              <p className="text-lg md:text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed font-light">
-                Expert professionals for all your home repair needs. <br className="hidden md:block" />
-                <span className="font-medium text-slate-200">Quick, reliable, and affordable</span> services at your doorstep.
+              <p className="text-lg md:text-2xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
+                <TextType
+                  text="Expert professionals for all your home repair needs."
+                  typingSpeed={10}
+                  loop={false}
+                  showCursor={typingStep === 0}
+                  onSentenceComplete={() => setTypingStep(1)}
+                  cursorCharacter="|"
+                  className="inline whitespace-pre-wrap"
+                  as="span"
+                />
+                <br className="hidden md:block" />
+                {typingStep >= 1 && (
+                  <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 drop-shadow-sm">
+                    <TextType
+                      text="Quick, reliable, and affordable"
+                      typingSpeed={10}
+                      loop={false}
+                      showCursor={typingStep === 1}
+                      onSentenceComplete={() => setTypingStep(2)}
+                      cursorCharacter="|"
+                      className="inline whitespace-pre-wrap"
+                      as="span"
+                    />
+                  </span>
+                )}
+                {typingStep >= 2 && (
+                  <TextType
+                    text=" services at your doorstep."
+                    typingSpeed={10}
+                    loop={false}
+                    showCursor={true}
+                    cursorCharacter="|"
+                    className="inline whitespace-pre-wrap"
+                    as="span"
+                    onSentenceComplete={() => setTypingStep(3)}
+                  />
+                )}
               </p>
-
-              {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-lg mx-auto mb-12">
-                <Link to="/bookings">
+                <Link to="/bookings" className="book-btn invisible">
                   <Button
                     size="lg"
                     className="w-full sm:w-auto bg-white text-slate-900 hover:bg-slate-100 shadow-xl border border-transparent rounded-full px-8 py-4 h-auto text-base font-bold transition-all duration-300 transform hover:-translate-y-1"
@@ -126,7 +303,7 @@ const HomePage = () => {
                     </div>
                   </Button>
                 </Link>
-                <Link to="/services">
+                <Link to="/services" className="explore-btn invisible">
                   <Button
                     size="lg"
                     variant="outline"
@@ -147,7 +324,7 @@ const HomePage = () => {
                   { icon: ShieldCheck, text: "Verified Experts" },
                   { icon: Award, text: "30-Day Warranty" }
                 ].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-2 bg-slate-900/50 backdrop-blur-md border border-slate-800 px-5 py-2.5 rounded-full hover:bg-slate-800/50 transition-colors duration-300 cursor-default">
+                  <div key={idx} className="trust-item invisible flex items-center gap-2 bg-slate-900/50 backdrop-blur-md border border-slate-800 px-5 py-2.5 rounded-full hover:bg-slate-800/50 transition-colors duration-300 cursor-default">
                     <item.icon className="w-4 h-4 text-slate-400" />
                     <span className="text-slate-300 text-sm font-medium">{item.text}</span>
                   </div>
@@ -175,29 +352,9 @@ const HomePage = () => {
             </div>
           </section>
 
-          {/* Categories Section */}
-          <section id="categories" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full scroll-mt-24 animate-item">
-            <div className="flex justify-between items-end mb-8">
-              <div>
-                <h2 className="text-3xl font-bold text-slate-900 mb-3">Explore Categories</h2>
-                <p className="text-slate-500 text-lg">Find exactly what you need</p>
-              </div>
-              <Button variant="ghost" className="hidden sm:flex text-slate-600 hover:text-slate-900" size="sm">View All <ArrowRight className="ml-2 w-4 h-4" /></Button>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {categories.map((cat) => {
-                const Icon = iconMap[cat.icon];
-                return (
-                  <div key={cat.id} className="group cursor-pointer bg-white p-6 rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all text-center flex flex-col items-center gap-4">
-                    <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-transform group-hover:scale-105 bg-slate-50 text-slate-600 group-hover:bg-slate-900 group-hover:text-white`}>
-                      {Icon && <Icon className="w-7 h-7" />}
-                    </div>
-                    <h3 className="font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">{cat.name}</h3>
-                  </div>
-                );
-              })}
-            </div>
+          {/* Categories Section - ScrollStack */}
+          <section id="categories" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full scroll-mt-24">
+            <ServiceStack />
           </section>
 
           {/* Popular Services Section */}
@@ -254,8 +411,8 @@ const HomePage = () => {
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-slate-800/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
             </div>
           </section>
-        </div>
-      </div>
+        </div >
+      </div >
     </>
   );
 };
